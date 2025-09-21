@@ -45,7 +45,7 @@ python collection.py
 
 📋 Формат XML
 Приложение работает с стандартным форматом EmulationStation:
-xml
+```xml
 <gameList>
   <game id="123456789">
     <path>roms/game.zip</path>
@@ -57,6 +57,7 @@ xml
     <releasedate>19920101T000000</releasedate>
   </game>
 </gameList>
+```
 
 🎨 Интерфейс
 https://images/screenshot.png
