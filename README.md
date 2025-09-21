@@ -58,8 +58,13 @@ python collection.py
 
 1. Установите **FFmpeg** и добавьте в PATH
 2. Windows: [Скачать FFmpeg](https://ffmpeg.org/download.html)
-3. Linux: `sudo apt install ffmpeg`
-4. macOS: `brew install ffmpeg`
+Или:
+# Поиск ffmpeg
+winget search ffmpeg
+winget install -e --id Gyan.FFmpeg
+
+4. Linux: `sudo apt install ffmpeg`
+5. macOS: `brew install ffmpeg`
 
 ### Использование:
 
