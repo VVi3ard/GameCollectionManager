@@ -1,18 +1,137 @@
 # Game Collection Manager
 
-Desktop utility for browsing and cleaning an EmulationStation-style ROM collection with image preview, video preview, translation helpers, and batch video compression.
+[English version](README.en.md)
 
-## Features
+![Game Collection Manager screenshot](screenshot.png)
 
-- Browse `gamelist.xml` as a tree grouped by system and clone families
-- Preview box art and gameplay videos
-- Save checked items between sessions
-- Remove checked games from the XML and delete matching ROM files
-- Translate descriptions from English to Russian
-- Batch-compress preview videos
-- Remember the last window size and position
+GUI-инструмент для быстрой ручной чистки и отбора больших EmulationStation-style ROM-коллекций.
 
-## Repository Layout
+## 🎮 Зачем я сделал этот инструмент
+
+Когда я собирал коллекцию для RetroArch, особенно под MAME и FBNeo, быстро выяснилось, что основная проблема не в ROM-файлах, а в масштабе самой коллекции.
+
+В аркадных сетах легко набираются десятки тысяч игр. Держать всё подряд бессмысленно: большую часть ты никогда не запустишь, а место на диске, SSD или портативной консоли всегда ограничено. Особенно неприятно то, что сами ROM-файлы часто занимают считанные килобайты, а вот скрейпнутые медиа могут весить уже гигабайты: видео-сниппеты, арты, боксы, скриншоты.
+
+Готовые "курированные" подборки мне не подошли. В них часто не хватает важных игр, а доверять чужому вкусу при сборке своей коллекции не хочется. Поэтому появился этот инструмент: быстрый локальный куратор, который помогает самому решить, что оставить, а что убрать.
+
+## ✨ Что умеет программа
+
+- Показывает `gamelist.xml` в виде дерева по системам и clone/family-группам
+- Сразу отображает описание, изображение и gameplay-видео выбранной игры
+- Позволяет быстро помечать игры на удаление клавишами прямо в списке
+- Сохраняет прогресс между запусками
+- Массово переводит описания с английского на русский
+- Массово сжимает `.mp4` превью через FFmpeg
+- Запоминает размер и позицию окна
+
+## 🚀 Быстрый старт
+
+### 1. Что нужно подготовить
+
+- Windows
+- Python 3.12
+- Желательно установленный VLC Player для воспроизведения видео внутри приложения
+
+FFmpeg вручную ставить не обязательно: `setup.bat` сам скачает Windows essentials build при первой настройке.
+
+### 2. Установка
+
+В корне проекта есть всего два пользовательских файла:
+
+- `setup.bat`
+- `start.bat`
+
+Для первой настройки:
+
+1. Запусти `setup.bat`
+2. Дождись завершения установки зависимостей
+3. При необходимости скрипт сам скачает локальный FFmpeg в `game_list_manager\ffmpeg\bin`
+
+### 3. Запуск
+
+1. Запусти `start.bat`
+2. Выбери папку коллекции, внутри которой лежит `gamelist.xml`
+3. После этого откроется основной интерфейс программы
+
+## 🧭 Как пользоваться
+
+Обычный рабочий сценарий такой:
+
+1. Запусти приложение и выбери папку с коллекцией
+2. В левой панели открой нужную систему
+3. Выбирай игры по одной и смотри описание, обложку и видео справа
+4. Если игру хочешь убрать из коллекции, пометь её
+5. Когда закончишь отбор, нажми `Удалить отмеченные`
+6. Если работаешь в несколько подходов, периодически сохраняй отметки
+
+### Как устроен интерфейс
+
+- Левая панель: дерево систем, основных игр и клонов
+- Правая панель: описание, изображение и видео выбранной игры
+- Нижняя панель: кнопки управления коллекцией
+
+### Горячие клавиши
+
+- `*` — переключить отметку у выбранной записи и перейти к следующей
+- `*` на группе/родительской записи — переключить всю группу вместе с дочерними клонами
+- `/` — переключить только группу, не меняя дочерние записи, и перейти к следующей
+
+### Что делают кнопки
+
+- `Удалить отмеченные` — удалить отмеченные игры из `gamelist.xml` и физически удалить соответствующие ROM-файлы
+- `Перевести всё` — массово перевести описания в `gamelist.xml` на русский язык
+- `Сохранить отметки` — сохранить текущий список отмеченных игр в `<папка_коллекции>\checked\checked.txt`
+- `Загрузить отметки` — восстановить ранее сохранённые отметки из `<папка_коллекции>\checked\checked.txt`
+- `Сжать видео` — открыть окно пакетного сжатия `.mp4` превью
+
+## ⚠️ Важно: что именно удаляется
+
+Кнопка `Удалить отмеченные` работает не "виртуально", а реально меняет коллекцию:
+
+- удаляет отмеченные записи из `gamelist.xml`
+- физически удаляет соответствующие ROM-файлы с диска
+
+Сейчас эта операция не удаляет автоматически изображения, видео и другие медиафайлы, связанные с игрой. То есть после чистки коллекции ROM-ы исчезнут, а медиа могут остаться в папках `media/`.
+
+Перед массовым удалением лучше иметь резервную копию коллекции.
+
+## 🌐 Перевод описаний
+
+Кнопка `Перевести всё`:
+
+- проходит по всем играм с англоязычным описанием
+- переводит `desc` на русский
+- сохраняет результат обратно в `gamelist.xml`
+
+Перед переводом автоматически создаётся backup XML:
+
+- `gamelist.bak`
+- `gamelist.bak1`
+- `gamelist.bak2`
+- и так далее
+
+Если описание уже содержит кириллицу, оно не переводится повторно.
+
+## 🎥 Сжатие видео
+
+Функция `Сжать видео` предназначена для уменьшения размера preview-видео в `media/`.
+
+Что делает сжатие:
+
+- уменьшает разрешение по заданному коэффициенту
+- перекодирует видео в H.264
+- кодирует звук в AAC
+- при необходимости обрезает ролики до указанной максимальной длительности
+- может обрабатывать несколько файлов параллельно
+
+Перед заменой каждого видео создаётся резервная копия в подпапке `backup`.
+
+FFmpeg ищется в таком порядке:
+
+1. `game_list_manager\ffmpeg\bin\ffmpeg.exe` и `ffprobe.exe`
+2. системный `PATH`
+
+## 🧱 Структура проекта
 
 ```text
 setup.bat
@@ -20,64 +139,16 @@ start.bat
 game_list_manager/
 ```
 
-- `setup.bat` installs Python dependencies and prepares local FFmpeg
-- `start.bat` launches the application
-- `game_list_manager/main.py` is the current Python entry point
+- `setup.bat` — первый запуск и подготовка окружения
+- `start.bat` — запуск приложения
+- `game_list_manager/main.py` — текущая Python entry point
+- `game_list_manager/requirements.txt` — список Python-зависимостей
+- `game_list_manager/setup.ps1` — служебный setup-скрипт
+- `game_list_manager/run.ps1` — служебный run-скрипт
 
-## Requirements
+## 📁 Какой формат коллекции ожидается
 
-- Windows
-- Python 3.12
-- Optional: VLC media player for in-app video playback
-
-## First-Time Setup
-
-Double-click:
-
-```text
-setup.bat
-```
-
-Or run from PowerShell:
-
-```powershell
-.\setup.bat
-```
-
-The setup script:
-
-- creates `.venv-py312`
-- installs Python packages from `game_list_manager\requirements.txt`
-- downloads local FFmpeg essentials into `game_list_manager\ffmpeg\bin` when needed
-
-## Run
-
-Double-click:
-
-```text
-start.bat
-```
-
-Or run from PowerShell:
-
-```powershell
-.\start.bat
-```
-
-After launch the app prompts you to select the ROM collection directory that contains `gamelist.xml`.
-
-## FFmpeg
-
-For video compression the app checks FFmpeg in this order:
-
-1. `.\game_list_manager\ffmpeg\bin\ffmpeg.exe` and `ffprobe.exe`
-2. `ffmpeg` and `ffprobe` from the system `PATH`
-
-In normal use you do not need to install FFmpeg manually because `setup.bat` downloads the Windows essentials build automatically.
-
-## XML Format
-
-The application expects a standard EmulationStation-style `gamelist.xml`, for example:
+Программа рассчитана на EmulationStation-style структуру с `gamelist.xml`, например:
 
 ```xml
 <gameList>
@@ -93,7 +164,14 @@ The application expects a standard EmulationStation-style `gamelist.xml`, for ex
 </gameList>
 ```
 
-## Notes
+Пути внутри XML должны указывать на реальные файлы внутри выбранной папки коллекции.
 
-- The project evolved from an older single-file version; the current maintained code lives in `game_list_manager/`
-- Local runtime files such as `.venv-py312`, downloaded FFmpeg binaries, saved window state, and checked item data are ignored by git
+## 🎬 Demo
+
+Здесь позже будет добавлено видео с примером использования программы.
+
+## 📝 Примечания
+
+- Текущая поддерживаемая версия проекта живёт в `game_list_manager/`
+- Приложение выросло из старой однофайловой версии и уже сильно отличается от неё по структуре
+- Локальные runtime-файлы вроде `.venv-py312`, `window_state.json`, скачанного FFmpeg и сохранённых отметок не коммитятся в git
