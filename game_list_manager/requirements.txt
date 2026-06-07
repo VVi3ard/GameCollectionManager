@@ -1,0 +1,9 @@
+Pillow==10.0.0
+googletrans==4.0.0-rc1
+python-vlc
+
+# External tools required for some features, but not installable via pip:
+# - FFmpeg / FFprobe: used by video compression in video_handler.py
+# - VLC media player binaries: required together with python-vlc for video playback
+# Legacy note:
+# - tkvideo is used by older prototype files, but not by the current main launcher

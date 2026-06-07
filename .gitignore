@@ -138,6 +138,7 @@ celerybeat.pid
 .env
 .envrc
 .venv
+.venv-py312/
 env/
 venv/
 ENV/
@@ -205,3 +206,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-local runtime artifacts
+.tmp/
+checked/
+window_state.json
+game_list_manager/ffmpeg/
+game_list_manager/__pycache__/
+game_list_manager/checked/
