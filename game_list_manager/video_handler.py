@@ -144,12 +144,24 @@ def compress_video_file(input_path, scale_factor, crf_value, max_duration):
                 pass
         raise
 
-def compress_video(app):
+def compress_video(app, collection_dir, collection_label):
+    if not collection_dir:
+        messagebox.showinfo("Информация", "Сначала выберите каталог экспорта")
+        return
+
+    if not os.path.exists(collection_dir):
+        messagebox.showerror("Ошибка", f"Каталог не найден: {collection_dir}")
+        return
+
     compression_dialog = tk.Toplevel(app.root)
-    compression_dialog.title("Настройки сжатия видео")
+    compression_dialog.title(f"Сжатие видео: {collection_label}")
     compression_dialog.geometry("500x450")
     
-    ttk.Label(compression_dialog, text="Настройки сжатия видео", font=("Arial", 12, "bold")).pack(pady=10)
+    ttk.Label(
+        compression_dialog,
+        text=f"Настройки сжатия видео\n{collection_label}",
+        font=("Arial", 12, "bold")
+    ).pack(pady=10)
     
     scale_var = tk.DoubleVar(value=0.75)
     crf_var = tk.IntVar(value=27)
@@ -199,6 +211,13 @@ def compress_video(app):
     status_var = tk.StringVar(value="Готов к обработке")
     status_label = ttk.Label(compression_dialog, textvariable=status_var)
     status_label.pack(pady=10)
+
+    ttk.Label(
+        compression_dialog,
+        text=f"Каталог: {collection_dir}",
+        wraplength=440,
+        justify=tk.LEFT
+    ).pack(padx=20, anchor=tk.W)
     
     progress = ttk.Progressbar(compression_dialog, mode="determinate")
     progress.pack(fill=tk.X, padx=20, pady=5)
@@ -213,7 +232,7 @@ def compress_video(app):
     
     def start_compression():
         video_files = []
-        media_dir = os.path.join(app.rom_dir, "media")
+        media_dir = os.path.join(collection_dir, "media")
         
         for root, dirs, files in os.walk(media_dir):
             if 'backup' in dirs:

@@ -2,8 +2,8 @@ import time
 import threading
 import shutil
 from googletrans import Translator
+import tkinter as tk
 from tkinter import ttk, messagebox
-from xml_handler import save_xml
 import xml.etree.ElementTree as ET
 import os
 
@@ -28,7 +28,7 @@ def translate_all(app):
         messagebox.showinfo("Info", "Нет игр для перевода")
         return
 
-    xml_path = os.path.join(app.rom_dir, 'gamelist.xml')
+    xml_path = app.curated_xml_path
     backup_xml(xml_path)
     app.progress["value"] = 0
 
@@ -48,11 +48,14 @@ def translate_all(app):
         tree = ET.parse(xml_path)
         root = tree.getroot()
         
-        xml_elements_by_id = {}
+        xml_elements_by_key = {}
         for game_elem in root.findall('game'):
             game_id = game_elem.get('id')
             if game_id:
-                xml_elements_by_id[game_id] = game_elem
+                xml_elements_by_key[game_id] = game_elem
+            path_elem = game_elem.find("path")
+            if path_elem is not None and path_elem.text:
+                xml_elements_by_key[path_elem.text] = game_elem
         
         games_to_translate = []
         for game in app.games:
@@ -133,8 +136,9 @@ def translate_all(app):
             try:
                 batch_texts = []
                 for game in batch:
-                    batch_texts.append(f"---{game['id']}---")
-                    batch_texts.append(game['desc'])
+                    game_key = game.get('id') or game.get('game_id') or game.get('path', '')
+                    batch_texts.append(f"---{game_key}---")
+                    batch_texts.append(game.get('desc', ''))
                 
                 combined_text = "\n".join(batch_texts)
                 
@@ -159,7 +163,7 @@ def translate_all(app):
                     translated_parts[current_id] = '\n'.join(current_text).strip()
                 
                 for game in batch:
-                    game_id = game['id']
+                    game_id = game.get('id') or game.get('game_id') or game.get('path', '')
                     found_id = None
                     for key in translated_parts.keys():
                         if key.strip() == game_id:
@@ -169,7 +173,7 @@ def translate_all(app):
                     if found_id:
                         translated_text = translated_parts[found_id]
                         game['desc'] = translated_text
-                        xml_elem = xml_elements_by_id.get(game_id)
+                        xml_elem = xml_elements_by_key.get(game_id)
                         if xml_elem is not None:
                             desc_elem = xml_elem.find("desc")
                             if desc_elem is not None:
@@ -190,9 +194,10 @@ def translate_all(app):
             except Exception:
                 for game in batch:
                     try:
-                        translated = translate_text(game['desc'])
+                        translated = translate_text(game.get('desc', ''))
                         game['desc'] = translated
-                        xml_elem = xml_elements_by_id.get(game['id'])
+                        game_id = game.get('id') or game.get('game_id') or game.get('path', '')
+                        xml_elem = xml_elements_by_key.get(game_id)
                         if xml_elem is not None:
                             desc_elem = xml_elem.find("desc")
                             if desc_elem is not None:
@@ -213,10 +218,7 @@ def translate_all(app):
         save_progress()
         stats_frame.destroy()
         
-        from xml_handler import parse_xml, group_by_system
-        app.games = parse_xml(app.rom_dir)
-        app.systems = group_by_system(app.games)
-        app.populate_tree()
+        app.root.after(0, app.reload_games_from_active_xml)
         
         messagebox.showinfo("Готово", f"Переведено {translated_count} из {total_to_translate} описаний")
 

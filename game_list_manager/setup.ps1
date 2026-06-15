@@ -117,7 +117,7 @@ Invoke-NativeOrThrow "Dependency validation" { & $venvPython -c "import tkinter,
 
 Write-Host ""
 Write-Host "Setup complete."
-Write-Host "Run the app with: .\\start.bat"
+Write-Host "Run the app with: .\\run.bat"
 Write-Host ""
 Write-Host "Optional system tool:"
 Write-Host "- VLC media player: needed for in-app video playback"

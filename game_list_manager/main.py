@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from ui import GameAppUI
-from xml_handler import load_gamelist
+from xml_handler import load_gamelist, prepare_collection_workspace
 import os
 
 def select_directory():
@@ -17,18 +17,19 @@ def main():
         print("No directory selected. Exiting.")
         return
     
-    xml_path = os.path.join(rom_dir, 'gamelist.xml')
-    if not os.path.exists(xml_path):
+    source_xml_path = os.path.join(rom_dir, 'gamelist.xml')
+    if not os.path.exists(source_xml_path):
         print(f"gamelist.xml not found in {rom_dir}")
         return
-    
-    games, systems = load_gamelist(xml_path)
+
+    workspace = prepare_collection_workspace(rom_dir)
+    games, systems = load_gamelist(workspace["curated_xml_path"])
     if not games:
         print("No games loaded. Exiting.")
         return
     
     root = tk.Tk()
-    app = GameAppUI(root, games, systems, rom_dir)
+    app = GameAppUI(root, games, systems, rom_dir, workspace)
     root.mainloop()
 
 if __name__ == "__main__":
