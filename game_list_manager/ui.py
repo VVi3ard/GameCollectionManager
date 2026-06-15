@@ -777,18 +777,47 @@ class GameAppUI:
         return result["path"]
 
     def move_to_next_visible(self, item):
-        current = item
-        next_item = self.tree.next(current)
-        while not next_item:
-            parent = self.tree.parent(current)
-            if not parent:
-                return
-            current = parent
-            next_item = self.tree.next(current)
+        next_game = self.find_next_game_item(item)
+        if not next_game:
+            return
 
-        self.tree.selection_set(next_item)
-        self.tree.focus(next_item)
-        self.tree.see(next_item)
+        self.tree.selection_set(next_game)
+        self.tree.focus(next_game)
+        self.tree.see(next_game)
+
+    def find_next_game_item(self, item):
+        current = item
+
+        while True:
+            next_item = self.tree.next(current)
+            while not next_item:
+                parent = self.tree.parent(current)
+                if not parent:
+                    return None
+                current = parent
+                next_item = self.tree.next(current)
+
+            game_item = self.first_game_in_subtree(next_item)
+            if game_item:
+                return game_item
+
+            current = next_item
+
+    def first_game_in_subtree(self, item):
+        meta = self.node_meta.get(item)
+        if meta and meta.get("type") in {"game", "version_group"}:
+            return item
+
+        children = self.tree.get_children(item)
+        if children:
+            self.tree.item(item, open=True)
+
+        for child in children:
+            game_item = self.first_game_in_subtree(child)
+            if game_item:
+                return game_item
+
+        return None
 
     def handle_mark_selected(self):
         selected_items = self.tree.selection()

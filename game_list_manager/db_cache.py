@@ -319,11 +319,29 @@ def _validate_order_fields(db_path, field_names):
     return [field for field in field_names if field in available]
 
 
+def _resolution_order_parts(field):
+    value = f"LOWER(COALESCE({_quote_identifier(field)}, ''))"
+    separator_pos = f"INSTR({value}, 'x')"
+    width = f"CAST(SUBSTR({value}, 1, {separator_pos} - 1) AS INTEGER)"
+    height = f"CAST(SUBSTR({value}, {separator_pos} + 1) AS INTEGER)"
+    is_valid = f"({separator_pos} > 1)"
+    return [
+        f"CASE WHEN {is_valid} THEN 0 ELSE 1 END",
+        f"CASE WHEN {is_valid} THEN {width} * {height} ELSE 0 END",
+        f"CASE WHEN {is_valid} THEN {width} ELSE 0 END",
+        f"CASE WHEN {is_valid} THEN {height} ELSE 0 END",
+        f"COALESCE({_quote_identifier(field)}, '') COLLATE NOCASE",
+    ]
+
+
 def load_tree_rows(db_path, grouping_fields):
     order_fields = _validate_order_fields(db_path, grouping_fields)
     order_clause_parts = []
     for field in order_fields:
-        order_clause_parts.append(f"COALESCE({_quote_identifier(field)}, '') COLLATE NOCASE")
+        if field == "resolution":
+            order_clause_parts.extend(_resolution_order_parts(field))
+        else:
+            order_clause_parts.append(f"COALESCE({_quote_identifier(field)}, '') COLLATE NOCASE")
     order_clause_parts.extend([
         "COALESCE(base_key, '') COLLATE NOCASE",
         "release_sort DESC",
